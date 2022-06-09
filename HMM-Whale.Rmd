@@ -1,0 +1,196 @@
+---
+title: "Analysing whale movement data in R"
+author: "Hjalte Søberg Mikkelsen"
+date: "10 June 2022"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+bibliography: refs.bib
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  message = FALSE, comment = NA
+)
+```
+
+This document presents the analysis of GPS/Argos movement tracks from bowhead whales.
+
+``` {r load-packages, results = 'hide', warning = FALSE}
+# Plotting package
+library(ggplot2)
+theme_set(theme_bw())
+# Movement modelling packages
+library(momentuHMM)
+library(foieGras)
+library(adehabitatLT)
+# GIS packages
+library(sf)
+library(sp)
+library(proj4)
+# Load functions for later
+setwd("C:/Users/Hjalte/Desktop/Bahchelor")
+source("utility_functions.R")
+```
+
+## Data download and initial preparation
+
+We first load the data from "Preprocessing of data.rmd"
+
+``` {r load-data}
+# Load data
+setwd("C:/Users/Hjalte/Desktop/Bahchelor")
+load("all_data_hmm")
+all_data_hmm_laea <- all_data_hmm[,c("ID", "time", "x", "y", "SST")]
+all_data_hmm_laea$x <- all_data_hmm_laea$x /1000
+all_data_hmm_laea$y <- all_data_hmm_laea$y /1000
+all_data_hmm_laea <- prepData(all_data_hmm_laea, covNames = "SST")
+````
+Fitting the hidden markov models
+```{r reg-crawl, results = 'hide'}
+
+hist(all_data_hmm_laea$step, breaks = seq(0,22),2, main = "Histogram of Step-lengths", xlab = "Step-lengths")
+hist(all_data_hmm_laea$angle, main = "Histogram of Turning-angles", xlab = "Turning-angles")
+hist(whale$step, breaks = seq(0,18),2)
+
+dist2 <- list(step = "gamma", angle = "wrpcauchy")
+
+
+Par2_2s <- list(step = c(1.3, 5, 1.3, 5), angle = c(0.99, 0.8))
+Par2_3s <- list(step = c(1, 6, 10, 1, 6, 10), angle = c(0.99, 0.5, 0.15))
+Par2_4s <- list(step = c(1, 6, 10, 15, 1, 6, 10, 15), angle = c(0.7, 0.8, 0.9,0.95))
+
+
+hmm1_second <- fitHMM(all_data_hmm_laea, nbStates = 2, dist = dist2, Par0 = Par2_2s, formula = ~SST)
+hmm2_second <- fitHMM(all_data_hmm_laea, nbStates = 3, dist = dist2, Par0 = Par2_3s, stateNames = c("Transit", "Scouting", "Encamped"),  formula = ~SST)
+hmm3_second <- fitHMM(all_data_hmm_laea, nbStates = 4, dist = dist2, Par0 = Par2_4s, formula = ~SST)
+hmm4_second <- fitHMM(all_data_hmm_laea, nbStates = 2, dist = dist2, Par0 = Par2_2s, formula = ~SST+I(SST^2))
+hmm5_second <- fitHMM(all_data_hmm_laea, nbStates = 3, dist = dist2, Par0 = Par2_3s, formula = ~SST+I(SST^2))
+hmm6_second <- fitHMM(all_data_hmm_laea, nbStates = 4, dist = dist2, Par0 = Par2_4s, formula = ~SST+I(SST^2))
+hmm1 <- fitHMM(all_data_hmm_laea, nbStates = 2, dist = dist2, Par0 = Par2_2s)
+hmm2 <- fitHMM(all_data_hmm_laea, nbStates = 3, dist = dist2, Par0 = Par2_3s)
+hmm3 <- fitHMM(all_data_hmm_laea, nbStates = 4, dist = dist2, Par0 = Par2_4s)
+
+
+hmm6_second
+hmm2_second
+AIC(hmm1_second, hmm2_second, hmm3_second, hmm4_second, hmm5_second, hmm6_second, hmm1, hmm2, hmm3)
+plotPR(hmm2_second)
+plotStationary(hmm2_second, plotCI = TRUE, return = TRUE)
+plot(hmm2_second, plotTracks = FALSE, ask = FALSE, plotCI= TRUE)
+plot(hmm2_second, ask = FALSE)
+AIC(hmm2_second, hmm2)
+
+CIreal(hmm2_second, alpha = 0.95, covs = data.frame(cov1=10.64), parms = c("step","angle","delta","gamma"))
+
+CIreal(hmm2_second, alpha = 0.95, covs = data.frame(SST=-1), parms = c("gamma"))
+CIreal(hmm2_second, alpha = 0.95, covs = data.frame(SST=10.45), parms = c("gamma"))
+CIreal(hmm2_second, alpha = 0.95, covs = data.frame(SST=mean(all_data_hmm_laea$SST)), parms = c("gamma"))
+CIbeta(hmm2_second)
+```
+
+Simulation of the 3-state hmm with fixed covariate
+````{r}
+#0.6 degrees
+whaleSim<-simData(nbAnimals = 20, nbStates = 3, dist=list(step='gamma', angle='wrpcauchy'), Par = list(step = c(7.259083, 2.8475219, 0.975536, 2.226445, 0.9524644, 0.566676), angle = c(0,0,0, 0.9499886, 0.9149161, 0.8232848)) , delta = c(0.3012648, 0.3785795, 0.3201557), beta = matrix(c(-2.550660482, -5.826453220, -2.867345350, -2.237195683, -6.433742408, -2.433548959),1,6)  , obsPerAnimal = 2196,initialPosition = c(-526.1349,
+-2245.532), stateNames = c("Transit", "Scouting", "Encamped"), states=TRUE)
+
+# 5.6 degrees
+whaleSim2<-simData(nbAnimals = 20, nbStates = 3, dist=list(step='gamma', angle='wrpcauchy'), Par = list(step = c(7.259083, 2.8475219, 0.975536, 2.226445, 0.9524644, 0.566676), angle = c(0,0,0, 0.9499886, 0.9149161, 0.8232848)) , delta = c(0.3012648, 0.3785795, 0.3201557), beta = matrix(c(-2.631083532, -4.993358220, -2.606042950, -2.080829632, -5.915340908, -2.342775059),1,6)  , obsPerAnimal = 2196,initialPosition = c(-526.1349,
+-2245.532), stateNames = c("Transit", "Scouting", "Encamped"), states=TRUE)
+
+#10.6 degrees
+whaleSim3<-simData(nbAnimals = 20, nbStates = 3, dist=list(step='gamma', angle='wrpcauchy'), Par = list(step = c(7.259083, 2.8475219, 0.975536, 2.226445, 0.9524644, 0.566676), angle = c(0,0,0, 0.9499886, 0.9149161, 0.8232848)) , delta = c(0.3012648, 0.3785795, 0.3201557), beta = matrix(c(-2.711506582,  -4.160263220, -2.344740550, -1.924463582, -5.396939408, -2.252001159),1,6)  , obsPerAnimal = 2196,initialPosition = c(-526.1349,
+-2245.532), stateNames = c("Transit", "Scouting", "Encamped"), states=TRUE)
+
+plot(whaleSim, ask = FALSE)
+plot(whaleSim2, ask = FALSE)
+
+
+## mean step-length
+whaleSim[is.na(whaleSim)] <- 0
+whaleSim2[is.na(whaleSim2)] <- 0
+whaleSim3[is.na(whaleSim3)] <- 0
+mean(whaleSim$step)
+mean(whaleSim2$step)
+mean(whaleSim3$step)
+median(whaleSim$step)
+median(whaleSim2$step)
+median(whaleSim3$step)
+mean(all_data_hmm_laea$step)
+
+
+## state-probabilities
+table(whaleSim$states)/43920
+table(whaleSim2$states)/43920
+table(whaleSim3$states)/43920
+
+
+
+##plot simulated tracks
+plot(x=-2000:2000, y=-5000:-1000, col='white',main="Simulated whale tracks for fixed SST=0.67", xlab="X", ylab="Y")
+for(i in 1:43920){
+  points(x = whaleSim$x[i], y= whaleSim$y[i], pch = 20)
+}
+plot(x=-2000:2000, y=-5000:-1000, col='white',main="Simulated whale tracks for fixed SST=5.67", xlab="X", ylab="Y")
+for(i in 1:43920){
+  points(x = whaleSim2$x[i], y= whaleSim2$y[i], pch = 20)
+}
+plot(x=-2000:2000, y=-5000:-1000, col='white',main="Simulated whale tracks for fixed SST=10.67", xlab="X", ylab="Y")
+for(i in 1:43920){
+  points(x = whaleSim3$x[i], y= whaleSim3$y[i], pch = 20)
+}
+
+
+#plot real whale tracks in the same style
+plot(x=-2000:2000, y=-5000:-1000, col='white',main="Real whale tracks", xlab="X", ylab="Y")
+for(i in 1:45000){
+  points(x = all_data_hmm_laea$x[i], y= all_data_hmm_laea$y[i], pch = 20)
+}
+````
+
+
+
+Find initial parameters by itteration
+````{r}
+
+# Initial parameters
+set.seed(12345)
+
+# Number of tries with different starting values
+niter <- 30
+
+dist2 <- list(step = "gamma", angle = "wrpcauchy")
+
+
+# Save list of fitted models
+allm <- list()
+for(i in 1:niter) {
+   # Step length mean
+    stepMean0 <- runif(2,min = 0.1, max = 20)
+# Step length standard deviation
+stepSD0 <- runif(2,min = 0.1, max = 20)
+# Turning angle concentration
+angleCon0 <- c(0.99, 0.8)
+# Fit model
+Par0s <- list(step = c(stepMean0, stepSD0), angle = c(angleCon0))
+allm[[i]] <- fitHMM(all_data_hmm_laea, nbStates = 2, dist = dist2, Par0 = Par0s, formula = ~SST)
+}
+allnllk <- unlist(lapply(allm, function(m) m$mod$minimum))
+allnllk
+
+whichbest <- which.min(allnllk)
+# Best fitting model
+mbest <- allm[[whichbest]]
+mbest
+
+plot(mbest, ask = FALSE)
+
+stepMean0 <- runif(3,min = c(0.5, 5, 10), max = c(5,10, 15))
+
+rm(latlon)
+plotPR(mbest)
+stepMean0 <- runif(2,min = c(0.001, 4), max = c(3, 12))
+AIC(mbest,hmm1_second)
+````

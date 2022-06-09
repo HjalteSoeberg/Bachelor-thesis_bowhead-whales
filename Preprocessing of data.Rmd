@@ -1,0 +1,791 @@
+Loading the data
+```{r,results='hide',message=FALSE}
+Sys.setenv(LANG = "en")
+Sys.setlocale("LC_TIME", "English")
+library(tidyverse)
+library(lubridate)
+setwd("C:/Users/Hjalte/Desktop/Bahchelor")
+old_whale_loc<-read_csv("Bowhead estimated_20160901.csv")
+new_whale_loc<-read_csv("2017_170750-1-FastGPS.csv",skip=3)
+new_whale_loc<-rbind(new_whale_loc,read_csv("2017_170751-1-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2017_170752-1-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2017_170753-1-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2017_170754-1-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2018_170750-2-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2018_170751-1-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2018_170752-2-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2018_170753-1-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2018_170754-1-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2018_170833-2-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2018_170834-1-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2018_170835-1-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2018_170837-1-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2019_170750-1-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2019_170751-1-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2019_170752-1-FastGPS.csv",skip=3))
+new_whale_loc<-rbind(new_whale_loc,read_csv("2019_170754-1-FastGPS.csv",skip=3))
+```
+
+Only using the relevant columns
+```{r,message=FALSE}
+old_whale_loc<-subset(old_whale_loc,select = c(id,date,estimatedLat,estimatedLon,estimatedLatStdErr,estimatedLonStdErr))
+names(old_whale_loc)[3]<- paste("Latitude")
+names(old_whale_loc)[4]<- paste("Longitude")
+new_whale_loc<-subset(new_whale_loc,select=c(Name,Day,Time,Latitude,Longitude))
+new_whale_loc<-na.omit(new_whale_loc)
+new_whale_loc<-new_whale_loc[order(new_whale_loc$Name),]
+```
+
+Adding columns for time day and year
+````{r,message=FALSE}
+  old_whale_loc<-dplyr:: mutate(old_whale_loc,Date = strftime(old_whale_loc$date, format = "%d-%b-%Y"))
+  
+  new_whale_loc<-dplyr:: mutate(new_whale_loc,date = dmy(Day))
+  new_whale_loc<-mutate_at(new_whale_loc,vars(date), funs(year, month, day))
+  new_whale_loc<-new_whale_loc[c(1:5,7:9)]
+  new_whale_loc<-dplyr:: mutate(new_whale_loc,seconds=period_to_seconds(hms(Time)))
+```
+
+names the whales from 2017 to 2019 so only the whales and saves the datasets (code written by Emil Skindersø)
+````{r,message=FALSE}
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]==170750 && new_whale_loc$year[i]==2017){
+    new_whale_loc$Name[i]<-"Iris"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]==170750 && new_whale_loc$year[i]==2018){
+    new_whale_loc$Name[i]<-"Nivi"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]==170751 && new_whale_loc$year[i]==2017){
+    new_whale_loc$Name[i]<-"Ivaana"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]==170751 && new_whale_loc$year[i]==2018){
+    new_whale_loc$Name[i]<-"Anette"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]==170752 && new_whale_loc$year[i]==2017){
+    new_whale_loc$Name[i]<-"Luna"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]==170753 && new_whale_loc$year[i]==2017){
+    new_whale_loc$Name[i]<-"Mona"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]==170753 && new_whale_loc$year[i]==2018){
+    new_whale_loc$Name[i]<-"Saga"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]==170754 && new_whale_loc$year[i]==2017){
+    new_whale_loc$Name[i]<-"Camilla"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]==170754 && new_whale_loc$year[i]==2018){
+    new_whale_loc$Name[i]<-"Anna"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]==170752 && new_whale_loc$year[i]==2018){
+    new_whale_loc$Name[i]<-"Karina"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]==170833 && new_whale_loc$year[i]==2018){
+    new_whale_loc$Name[i]<-"Laura"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]==170835 && new_whale_loc$year[i]==2018){
+    new_whale_loc$Name[i]<-"Alba"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]==170837 && new_whale_loc$year[i]==2018){
+    new_whale_loc$Name[i]<-"Ida"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]=="18A0655" && new_whale_loc$year[i]==2019){
+    new_whale_loc$Name[i]<-"Nadja"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]=="18A0656" && new_whale_loc$year[i]==2019){
+    new_whale_loc$Name[i]<-"Rasmus"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]=="18A0657" && new_whale_loc$year[i]==2019){
+    new_whale_loc$Name[i]<-"Else"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]=="18A0660" && new_whale_loc$year[i]==2019){
+    new_whale_loc$Name[i]<-"Iben"
+  }
+  else{next}
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$Name[i]=="170834" && new_whale_loc$year[i]==2018){
+    new_whale_loc$Name[i]<-"Hvalborg"
+  }
+  else{next}
+}
+
+#Hvor mange er der af hver hval
+for (name in unique(new_whale_loc$Name)){
+  print(paste(name,nrow(subset(new_whale_loc,Name==name)),sep=" "))
+}
+
+save(old_whale_loc, file="old_whale_loc")
+save(new_whale_loc, file="new_whale_loc")
+````
+
+Load modified datasets
+`````{r}
+load("new_whale_loc")
+load("old_whale_loc")
+````
+
+
+Applying swim speed filter to the data from 2017 to 2019 (most of the code written by Emil SKindersø):
+````{r}
+library(trip)
+x <- dmy(new_whale_loc$Day)
+new_whale_loc$Postdate <- as.POSIXct(str_c(x,new_whale_loc$Time, collapse = NULL, sep = " "))
+
+library(pracma)
+#Overvejelse: Det er nødvendigt med km.h^-1 for og kunne sammenligne med litteraturen til outliers
+#men det er bedre med grader fordi det tillader os og bevare den 2-dimensionelle struktur i data
+Name<-new_whale_loc$Name
+lat<-new_whale_loc$Latitude
+lon<-new_whale_loc$Longitude
+Name[13862] <- "none"
+#laver grader vektor
+dist_deg<-rep(NA,nrow(new_whale_loc))
+
+for (i in 1:nrow(new_whale_loc)){
+  if (Name[i]==Name[i+1]){
+    dist_deg[i+1]<-sqrt((lat[i]-lat[i+1])^2+(lon[i]-lon[i+1])^2) #Så afstanden i et punkt angiver afstanden fra forrige punkt
+  }
+}
+sum(is.na(dist_deg)) #Og vi har 18 hvaler, så det er godt nok
+
+
+#Laver kilometer vektor
+dist_km<-rep(NA,nrow(new_whale_loc))
+for (i in 1:(nrow(new_whale_loc)-1)){
+  if (Name[i]==Name[i+1]){
+    loc1<-c(lat[i],lon[i])
+    loc2<-c(lat[i+1],lon[i+1])
+    dist_km[i+1]<-haversine(loc1,loc2,R=6356.8) #Her er radius fra jordens centrum til nordpolen,
+    #da denne er tættere på end ækvator
+  }
+  else{next} #Så hvis det er en ny hval så går vi videre, og der findes altså ingen afstand til næste punkt
+}
+sum(is.na(dist_km)) #Og vi har 18 hvaler, så det er godt nok
+
+#laver tid vektor
+dive_time<-rep(NA,nrow(new_whale_loc))
+for (i in 1:nrow(new_whale_loc)){
+  if (Name[i]==Name[i+1]){
+    if (new_whale_loc$day[i]==new_whale_loc$day[i+1]){ #inden for samme dag
+      dive_time[i+1]<-new_whale_loc$seconds[i+1]-new_whale_loc$seconds[i]
+    }
+    else{
+      if (new_whale_loc$month[i]==new_whale_loc$month[i+1]){ #inden for samme måned
+        dive_time[i+1]<- (86400-new_whale_loc$seconds[i])+new_whale_loc$seconds[i+1]+
+          86400*(new_whale_loc$day[i+1]-new_whale_loc$day[i]-1) #Afstanden fra dagen før 
+        #til midnat plus afstand fra midnat til næste observation
+      }
+      else{
+        if (new_whale_loc$month[i]==1 || new_whale_loc$month[i]==3 || new_whale_loc$month[i]==5 || new_whale_loc$month[i]==7 ||
+            new_whale_loc$month[i]==8 || new_whale_loc$month[i]==10 || new_whale_loc$month[i]==12) {        
+          dive_time[i+1]<-(31-new_whale_loc$day[i]+new_whale_loc$day[i+1])*86400-new_whale_loc$seconds[i]+new_whale_loc$seconds[i+1] #Og så satser vi på at der ikke er en hval der er væk
+            #i længere tid en en måned
+          #Første parantes skal give 1 hvis der kun er gået 1 dag, og hvis der har været langt fra den udegående måned
+          #skal tallet blive større, hvilket sker hvis der har været langt fra udgående måned eller man er langt i indgående måned
+        }
+        if (new_whale_loc$month[i]==4 || new_whale_loc$month[i]==6 || new_whale_loc$month[i]==9 || new_whale_loc$month[i]==11){
+          dive_time[i+1]<-(30-new_whale_loc$day[i]+new_whale_loc$day[i+1])*86400-new_whale_loc$seconds[i]+new_whale_loc$seconds[i+1]
+        }
+        if (new_whale_loc$month[i]==2){
+            dive_time[i+1]<-(28-new_whale_loc$day[i]+new_whale_loc$day[i+1])*86400-new_whale_loc$seconds[i]+new_whale_loc$seconds[i+1]#Hvis vi lige antager at der ikke er nogen skudår
+        }
+      }
+    }
+  }
+  else{next}
+}
+#Hvor vi på denne kan se at der er gået mindst 30 minutter mellem alle observationer
+
+speed<-rep(NA,nrow(new_whale_loc))
+for (i in 1:nrow(new_whale_loc)){
+  speed[i]<-dist_km[i]/(dive_time[i]/(60*60))
+}
+Name <- Name[-13862] 
+travel<-data.frame(Name,lat,lon,dist_deg,dist_km,dive_time,speed)
+new_whale_loc$dive_time <- travel$dive_time
+new_whale_loc$speed<-travel$speed
+rm(list=c("lat","lon","Name","dist_deg","dist_km","dive_time","i","loc1","loc2","speed"))
+
+for (i in 1:nrow(new_whale_loc)){
+  if (is.na(new_whale_loc$speed[i])){
+    new_whale_loc$speed[i] <- 0
+  }
+}
+
+for (i in 1:nrow(new_whale_loc)){
+  if (is.na(new_whale_loc$dive_time[i])){
+    new_whale_loc$dive_time[i] <- 0
+  }
+}
+
+
+
+x <- 0
+## you need to run the loop a couple of times until no more points are being deleted
+
+## first loop allows whales to swim fast in short periods of time
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$speed[i] >= 10 && new_whale_loc$dive_time[i] >= 3600){
+    new_whale_loc <- new_whale_loc[-i,]
+    x <- x+1
+  }
+  else{next}
+}
+
+#the second loop says that the whales cant swim faster than 20 km/h
+for (i in 1:nrow(new_whale_loc)){
+  if (new_whale_loc$speed[i] >= 20){
+    new_whale_loc <- new_whale_loc[-i,]
+    x <- x+1
+  }
+  else{next}
+}
+
+save(new_whale_loc, file="filt_new_whale_loc")
+````
+
+
+
+
+
+Load packages for crawl and to add covariate to data
+``` {r load-packages, results = 'hide', warning = FALSE}
+# Plotting package
+library(ggplot2)
+theme_set(theme_bw())
+# Movement modelling packages
+library(momentuHMM)
+library(foieGras)
+library(adehabitatLT)
+# GIS packages
+library(sf)
+library(sp)
+library(proj4)
+# Load functions for later
+setwd("C:/Users/Hjalte/Desktop/Bahchelor")
+source("utility_functions.R")
+```
+
+Load filtered data
+``` {r load-data}
+# Load data
+setwd("C:/Users/Hjalte/Desktop/Bahchelor")
+load("filt_new_whale_loc")
+load("old_whale_loc")
+
+# Keep relevant columns: ID, time, longitude, latitude, temperature
+data1 <- old_whale_loc[, c(1, 2, 4, 3, 8)]
+data2 <- new_whale_loc[, c(1, 11, 5, 4, 10)]
+colnames(data1) <- c("ID", "time", "lon", "lat", "SST")
+colnames(data2) <- c("ID", "time", "lon", "lat", "SST")
+data <- rbind(data1, data2)
+```
+
+Change to Cartesian coordianates instead of lon lat for crawl
+````{r}
+llcoord <- st_as_sf(data[, c("lon", "lat")], coords = c("lon", "lat"), 
+                    crs = CRS("+proj=longlat +datum=WGS84"))
+laeacoords <- st_transform(llcoord, 3574)
+
+# Add Easting-Northing to data (in km)
+data[, c("x", "y")] <- st_coordinates(laeacoords)/1000
+````
+
+
+Splitting data at large gaps, keeping only 3 day or longer tracks and using crawl on all the tracks 
+`````{r}
+data <- split_at_gap(data = data, max_gap =1440 , shortest_track = 3*24*60)
+legit_data <- data.frame()
+for (i in 1:277){
+  df <- crawlWrap(obsData = data[which(data$ID == unique(data$ID)[i]),], 
+                                         timeStep = "120 min",retryFits=20,
+                                         Time.name = "time", coord = c("x", "y"),theta = c(2, 0.01),)
+  df_out <- prepData(data = df)
+  legit_data <- rbind(legit_data,df_out)
+}
+all_data_hmm <- legit_data
+````
+
+
+now i remove any whale with a step length over 20 as this means their swim with a speed of over 10km/h for 2 hours straight
+````{r}
+all_data_hmm <- all_data_hmm[-which(all_data_hmm$ID == "6337_10-2"),]
+all_data_hmm <- all_data_hmm[-which(all_data_hmm$ID == "Rasmus-6"),]
+all_data_hmm <- all_data_hmm[-which(all_data_hmm$ID == "20160FB_03-1"),]
+all_data_hmm <- all_data_hmm[-which(all_data_hmm$ID == "21791_05-2"),]
+all_data_hmm <- all_data_hmm[-which(all_data_hmm$ID == "27258_10-3"),]
+all_data_hmm <- all_data_hmm[-which(all_data_hmm$ID == "21791_05-1"),]
+all_data_hmm <- all_data_hmm[-which(all_data_hmm$ID == "Anette-1"),]
+all_data_hmm <- all_data_hmm[-which(all_data_hmm$ID == "20164_08-3"),]
+all_data_hmm <- all_data_hmm[-which(all_data_hmm$ID == "7934_08-7"),]
+all_data_hmm <- all_data_hmm[-which(all_data_hmm$ID == "20685FB_02-1"),]
+all_data_hmm <- all_data_hmm[-which(all_data_hmm$ID == "20157_09-2"),]
+all_data_hmm <- all_data_hmm[-which(all_data_hmm$ID == "21803_02-1"),]
+````
+
+
+Add lon lat to data
+````{r}
+all_data_hmm$x <- all_data_hmm$x *1000
+all_data_hmm$y <- all_data_hmm$y *1000
+llcoord <- st_as_sf(all_data_hmm[, c("x", "y")], coords = c("x", "y"), crs = CRS("EPSG:3574"))
+laeacoords <- st_transform(llcoord, "+proj=longlat +datum=WGS84")
+
+all_data_hmm[, c("lon", "lat")] <- st_coordinates(laeacoords)
+all_data_hmm$SST <- NA
+all_data_hmm <- all_data_hmm[,c("ID", "time", "lon", "lat", "SST","x","y")]
+
+````
+
+Add SST to Data
+````{r}
+library(ncdf4)
+library(raster)
+library(rgdal)
+library(ggplot2)
+library(gganimate)
+library(gifski)
+library("zoo")
+Sys.setenv(LANG = "en")
+Sys.setlocale("LC_TIME", "English")
+all_data_hmm$Day <- as.Date(all_data_hmm$time,format="%d-%b-%Y" )
+nc_data <- nc_open("SST may2017-may2018.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+nc_data <- nc_open("SST may2018-may2019.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+nc_data <- nc_open("SST may2019-june2019.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+nc_data <- nc_open("SST june2019-2020-.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+nc_data <- nc_open("SST may2001-may2002.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+nc_data <- nc_open("SST may2002-may2003.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+nc_data <- nc_open("SST may2003-may2004.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+nc_data <- nc_open("SST may2004-may2005.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+nc_data <- nc_open("SST may2005-may2006.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+nc_data <- nc_open("SST may2006-may2007.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+nc_data <- nc_open("SST may2007-may2008.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+nc_data <- nc_open("SST may2008-may2009.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+nc_data <- nc_open("SST may2009-may2010.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+nc_data <- nc_open("SST may2010-may2011.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+nc_data <- nc_open("SST may2011-may2012.nc")
+lon <- ncvar_get(nc_data, "lon")
+lat <- ncvar_get(nc_data, "lat", verbose = F)
+t1 <- ncvar_get(nc_data, "time")
+g <- as.Date(t1/86400 , origin = "1981-01-01") # to see the dates of the SST
+ndvi.array <- ncvar_get(nc_data, "analysed_sst")-272.15
+
+## loop der får sst ind i datasættet
+rm(i)
+for (k in 1:length(g)){
+  for (z in 1:87983){
+    if (as.character(g[k])==as.character(all_data_hmm$Day[z])){
+      for (i in 1:dim(lat)){
+        if ((round(all_data_hmm$lat[z],digits = 4) >= round(lat[i]-0.025, digits = 4)) && (round(all_data_hmm$lat[z],digits = 4) < round(lat[i]+0.025, digits = 4))){
+          for (t in 1:dim(lon)){
+            if ((round(all_data_hmm$lon[z],digits = 4) >= round(lon[t]-0.025, digits = 4)) && (round(all_data_hmm$lon[z],digits = 4) < round(lon[t]+0.025, digits = 4))){
+              all_data_hmm$SST[z] <- ndvi.array[t,i,k]
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+save(all_data_hmm, file = "all_data_hmm")
+
+````
+
+
